@@ -176,10 +176,6 @@ if __name__ == '__main__':
         print e
         pass
 
-    # Dump results.
-    print 'Dumping results to anime_birthdays.xlsx...'
-    # workbook = xlsxwriter.Workbook('anime_birthdays.xlsx')
-    # worksheet = workbook.add_worksheet(u'Дни рождения')
     columns = [
         'ID',
         'Main Name',
@@ -193,6 +189,13 @@ if __name__ == '__main__':
     db = sqlite3.connect('birthdays.sqlite')
 
     cursor = db.cursor()
+
+    cursor.execute("CREATE TABLE IF NOT EXISTS birthdays(name TEXT, day INTEGER, "
+                   "month INTEGER, series TEXT, original_name TEXT, photo TEXT, "
+                   "important BOOLEAN, PRIMARY KEY(name, day, month))")
+
+    total_changed_records = 0
+
     for row_ind, character_info in enumerate(all_characters):
         full_birthday = character_info.get('Date of Birth', 'unknown')
         m = re.match('(\d+).(\d+).+', full_birthday)
@@ -203,9 +206,6 @@ if __name__ == '__main__':
         if day_of_birth == '??' or month_of_birth == '??':
             continue
 
-
-        print character_info.get('Main Name', 'unknown')
-
         cursor.execute('INSERT OR REPLACE INTO birthdays (name, day, month, photo, series, original_name, important) '
                        'values (?, ?, ?, ?, ?, ?, (SELECT important FROM birthdays WHERE name = ? and day = ?))',
                        (character_info.get('Main Name', 'unknown'),
@@ -215,6 +215,9 @@ if __name__ == '__main__':
                        character_info.get('Official Name', 'unknown'),
                        character_info.get('Main Name', 'unknown'),
                        day_of_birth))
+        total_changed_records += 1
+
+    print 'Saved %d records.' % total_changed_records
 
     db.commit()
     db.close()

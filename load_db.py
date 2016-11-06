@@ -43,7 +43,7 @@ if __name__ == '__main__':
         cursor = conn.cursor()
 
         cursor.execute("CREATE TABLE IF NOT EXISTS birthdays(name TEXT, day INTEGER, "
-                       "month INTEGER, series TEXT, photo VARCHAR(255), "
+                       "month INTEGER, series TEXT, original_name TEXT, photo TEXT, "
                        "important BOOLEAN, PRIMARY KEY(name, day, month))")
 
         cursor.executemany("INSERT OR REPLACE INTO birthdays (name, day, month, series, photo, important) "
