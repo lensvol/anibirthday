@@ -6,8 +6,8 @@ from random import shuffle, random
 import requests
 import re
 import sys
+import sqlite3
 import time
-import xlsxwriter
 
 
 LIST_CHARID_RE = re.compile('animedb.pl\?show=character&amp;charid=(\d+)')
@@ -91,12 +91,15 @@ def get_character_properties(character_id):
         value = row.find('td', **{'class': 'value'})
 
         inner_spans = value.find_all('span')
-        for span in inner_spans:
-            if 'itemprop' in span.attrs or span.attrs.get('class') == 'tagname':
-                value = span.text
+        if field == 'Official Name':
+            value = value.find('label').text.strip()
         else:
-            if not isinstance(value, (unicode, str)):
-                value = value.text.strip()
+            for span in inner_spans:
+                if 'itemprop' in span.attrs or span.attrs.get('class') == 'tagname':
+                    value = span.text
+            else:
+                if not isinstance(value, (unicode, str)):
+                    value = value.text.strip()
 
         properties[field] = value
 
@@ -139,11 +142,6 @@ if __name__ == '__main__':
     elif len(sys.argv) > 1:
         pages_to_download = map(int, sys.argv[1:])
 
-        # sequential_charids = range(
-        #     min(from_charid, to_charid),
-        #     max(from_charid, to_charid) + 1,
-        # )
-        # character_list = iter([sequential_charids])
         character_list = list_characters(pages_to_download)
     else:
         character_list = list_characters(xrange(0, 2048))
@@ -180,25 +178,43 @@ if __name__ == '__main__':
 
     # Dump results.
     print 'Dumping results to anime_birthdays.xlsx...'
-    workbook = xlsxwriter.Workbook('anime_birthdays.xlsx')
-    worksheet = workbook.add_worksheet(u'Дни рождения')
+    # workbook = xlsxwriter.Workbook('anime_birthdays.xlsx')
+    # worksheet = workbook.add_worksheet(u'Дни рождения')
     columns = [
         'ID',
         'Main Name',
+        'Official Name',
         'Date of Birth',
         'Seen',
         'Photo URL',
     ]
 
-    for pos, col_name in enumerate(columns):
-        worksheet.write(0, pos, col_name)
 
+    db = sqlite3.connect('birthdays.sqlite')
+
+    cursor = db.cursor()
     for row_ind, character_info in enumerate(all_characters):
-        for pos, column in enumerate(columns):
-            worksheet.write(
-                row_ind + 1,
-                pos,
-                character_info.get(column, 'unknown'),
-            )
+        full_birthday = character_info.get('Date of Birth', 'unknown')
+        m = re.match('(\d+).(\d+).+', full_birthday)
+        if not m:
+            continue
 
-    workbook.close()
+        day_of_birth, month_of_birth = m.groups()
+        if day_of_birth == '??' or month_of_birth == '??':
+            continue
+
+
+        print character_info.get('Main Name', 'unknown')
+
+        cursor.execute('INSERT OR REPLACE INTO birthdays (name, day, month, photo, series, original_name, important) '
+                       'values (?, ?, ?, ?, ?, ?, (SELECT important FROM birthdays WHERE name = ? and day = ?))',
+                       (character_info.get('Main Name', 'unknown'),
+                       day_of_birth, month_of_birth,
+                       character_info.get('Photo URL', 'unknown'),
+                       character_info.get('Seen', 'unknown'),
+                       character_info.get('Official Name', 'unknown'),
+                       character_info.get('Main Name', 'unknown'),
+                       day_of_birth))
+
+    db.commit()
+    db.close()
