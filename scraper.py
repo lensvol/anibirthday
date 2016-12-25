@@ -119,9 +119,11 @@ def list_characters(pages):
         page = sorted_by_birthdate_character_list(num)
 
         if 'do.unban.me' in page:
+            sys.stdout.write('\a')
+            sys.stdout.flush()
             print '!!! Please, open https://anidb.net/perl-bin/animedb.pl?show=characterlist and unban yourself. I\'ll wait.'
             confirmation = 'N'
-            while confirmation == 'N':
+            while confirmation != 'Y':
                 confirmation = raw_input('[Y/N]')
 
             page = sorted_by_birthdate_character_list(num)
@@ -147,6 +149,13 @@ if __name__ == '__main__':
         character_list = list_characters(xrange(0, 2048))
 
     all_characters = []
+    total_changed_records = 0
+    db = sqlite3.connect('birthdays.sqlite')
+    cursor = db.cursor()
+
+    cursor.execute("CREATE TABLE IF NOT EXISTS birthdays(name TEXT, day INTEGER, "
+                   "month INTEGER, series TEXT, original_name TEXT, photo TEXT, "
+                   "important BOOLEAN, PRIMARY KEY(name, day, month))")
 
     try:
         for ind, ids in character_list:
@@ -156,6 +165,7 @@ if __name__ == '__main__':
             shuffle(charids)
 
             for random_id in charids:
+                # TODO: Skip ignored IDs read from file
                 character_info = get_character_properties(random_id)
                 if character_info and 'Date of Birth' in character_info:
                     try:
@@ -166,12 +176,30 @@ if __name__ == '__main__':
                         print character_info['Date of Birth']
                     except UnicodeEncodeError:
                         pass
-                    characters_with_birthdays.append(character_info)
 
-            all_characters.extend(sorted(
-                characters_with_birthdays,
-                key=lambda item: item['ID'],
-            ))
+                    full_birthday = character_info.get('Date of Birth', 'unknown')
+                    m = re.match('(\d+).(\d+).+', full_birthday)
+                    if not m:
+                        continue
+
+                    day_of_birth, month_of_birth = m.groups()
+                    if day_of_birth == '??' or month_of_birth == '??':
+                        continue
+
+                    # TODO: Insert only if records are missing
+                    cursor.execute('INSERT OR REPLACE INTO birthdays (name, day, month, photo, series, original_name, important) '
+                                   'values (?, ?, ?, ?, ?, ?, (SELECT important FROM birthdays WHERE name = ? and day = ?))',
+                                   (character_info.get('Main Name', 'unknown'),
+                                   day_of_birth, month_of_birth,
+                                   character_info.get('Photo URL', 'unknown'),
+                                   character_info.get('Seen', 'unknown'),
+                                   character_info.get('Official Name', 'unknown'),
+                                   character_info.get('Main Name', 'unknown'),
+                                   day_of_birth))
+                    total_changed_records += 1
+                    db.commit()
+                print '>>>', total_changed_records
+
     except Exception, e:
         print e
         pass
@@ -185,39 +213,6 @@ if __name__ == '__main__':
         'Photo URL',
     ]
 
-
-    db = sqlite3.connect('birthdays.sqlite')
-
-    cursor = db.cursor()
-
-    cursor.execute("CREATE TABLE IF NOT EXISTS birthdays(name TEXT, day INTEGER, "
-                   "month INTEGER, series TEXT, original_name TEXT, photo TEXT, "
-                   "important BOOLEAN, PRIMARY KEY(name, day, month))")
-
-    total_changed_records = 0
-
-    for row_ind, character_info in enumerate(all_characters):
-        full_birthday = character_info.get('Date of Birth', 'unknown')
-        m = re.match('(\d+).(\d+).+', full_birthday)
-        if not m:
-            continue
-
-        day_of_birth, month_of_birth = m.groups()
-        if day_of_birth == '??' or month_of_birth == '??':
-            continue
-
-        cursor.execute('INSERT OR REPLACE INTO birthdays (name, day, month, photo, series, original_name, important) '
-                       'values (?, ?, ?, ?, ?, ?, (SELECT important FROM birthdays WHERE name = ? and day = ?))',
-                       (character_info.get('Main Name', 'unknown'),
-                       day_of_birth, month_of_birth,
-                       character_info.get('Photo URL', 'unknown'),
-                       character_info.get('Seen', 'unknown'),
-                       character_info.get('Official Name', 'unknown'),
-                       character_info.get('Main Name', 'unknown'),
-                       day_of_birth))
-        total_changed_records += 1
-
     print 'Saved %d records.' % total_changed_records
 
-    db.commit()
     db.close()
