@@ -9,6 +9,12 @@ import sys
 import sqlite3
 import time
 
+CREATE_TABLE_SQL = 'CREATE TABLE IF NOT EXISTS birthdays(charid INTEGER, name TEXT, day INTEGER, ' \
+                   'month INTEGER, series TEXT, original_name TEXT, photo TEXT, ' \
+                   'important BOOLEAN, PRIMARY KEY(name, day, month))'
+INSERT_CHARACTER_SQL = 'INSERT OR REPLACE INTO birthdays ' \
+                       '(charid, name, day, month, photo, series, original_name, important) ' \
+                       'values (?, ?, ?, ?, ?, ?, ?, (SELECT important FROM birthdays WHERE name = ? and day = ?))'
 
 LIST_CHARID_RE = re.compile('animedb.pl\?show=character&amp;charid=(\d+)')
 PAGE_URL_TEMPLATE = 'https://anidb.net/perl-bin/animedb.pl?{}'
@@ -153,9 +159,7 @@ if __name__ == '__main__':
     db = sqlite3.connect('birthdays.sqlite')
     cursor = db.cursor()
 
-    cursor.execute("CREATE TABLE IF NOT EXISTS birthdays(name TEXT, day INTEGER, "
-                   "month INTEGER, series TEXT, original_name TEXT, photo TEXT, "
-                   "important BOOLEAN, PRIMARY KEY(name, day, month))")
+    cursor.execute(CREATE_TABLE_SQL)
 
     try:
         for ind, ids in character_list:
@@ -186,16 +190,19 @@ if __name__ == '__main__':
                     if day_of_birth == '??' or month_of_birth == '??':
                         continue
 
+                    values = (
+                        random_id,
+                        character_info.get('Main Name', 'unknown'),
+                        day_of_birth, month_of_birth,
+                        character_info.get('Photo URL', 'unknown'),
+                        character_info.get('Seen', 'unknown'),
+                        character_info.get('Official Name', 'unknown'),
+                        character_info.get('Main Name', 'unknown'),
+                        day_of_birth,
+                    )
+
                     # TODO: Insert only if records are missing
-                    cursor.execute('INSERT OR REPLACE INTO birthdays (name, day, month, photo, series, original_name, important) '
-                                   'values (?, ?, ?, ?, ?, ?, (SELECT important FROM birthdays WHERE name = ? and day = ?))',
-                                   (character_info.get('Main Name', 'unknown'),
-                                   day_of_birth, month_of_birth,
-                                   character_info.get('Photo URL', 'unknown'),
-                                   character_info.get('Seen', 'unknown'),
-                                   character_info.get('Official Name', 'unknown'),
-                                   character_info.get('Main Name', 'unknown'),
-                                   day_of_birth))
+                    cursor.execute(INSERT_CHARACTER_SQL, values)
                     total_changed_records += 1
                     db.commit()
                 print '>>>', total_changed_records
