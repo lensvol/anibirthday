@@ -34,6 +34,13 @@ def load_cfg(fn=None):
     return cfg
 
 
+def prepare_hashtags(japanese_name):
+    return [
+        u'#%s生誕祭' % japanese_name,
+        u'#%s生誕祭2017' % japanese_name,
+    ]
+
+
 if __name__ == '__main__':
     if len(sys.argv) == 3:
         day = int(sys.argv[1])
@@ -55,9 +62,10 @@ if __name__ == '__main__':
 
     print 'Selecting characters with birthdays on %d/%d...' % (day, month)
 
+    print 'Trying to select important characters...'
     cursor = db.cursor()
     cursor.execute('SELECT name, original_name, series, photo FROM birthdays WHERE '
-                   'day = ? AND month = ?', (day, month))
+                   'day = ? AND month = ? AND important = 1', (day, month))
     records = cursor.fetchall()
 
     random.shuffle(records)
@@ -73,6 +81,12 @@ if __name__ == '__main__':
                 'name': name,
                 'series': series,
             }
+
+        hashtags = prepare_hashtags(original_name)
+        for hashtag in hashtags:
+            if len(text) + len(hashtag) + 1 <= 140:
+                text += ' ' + hashtag
+
         api.PostUpdate(text, media=photo)
 
         print 'Congratulated %s!' % name
