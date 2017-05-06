@@ -7,8 +7,24 @@ from django.contrib import admin
 from .models import Birthday, TweetTemplate
 
 
+class ImportantFilter(SimpleListFilter):
+    title = u'Статус'
+
+    parameter_name = 'importance'
+
+    def lookups(self, request, model_admin):
+        return [
+            (u'important', u'Важные'),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == 'important':
+            queryset = queryset.filter(important=1)
+        return queryset
+
+
 class CategoryFilter(SimpleListFilter):
-    title = (u'Категории')
+    title = u'Категории'
 
     parameter_name = 'category'
 
@@ -37,7 +53,7 @@ class CategoryFilter(SimpleListFilter):
 
 class BirthdayAdmin(admin.ModelAdmin):
     list_display = ('charid', 'name', 'prepared_series', 'day', 'human_readable_month')
-    list_filter = (CategoryFilter, )
+    list_filter = (CategoryFilter, ImportantFilter)
 
     def prepared_series(self, obj):
         return obj.series.replace('\n', '<br>')
