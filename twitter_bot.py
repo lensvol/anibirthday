@@ -40,6 +40,13 @@ def prepare_hashtags(japanese_name):
         u'#%s生誕祭2017' % japanese_name,
     ]
 
+def prepare_series_list(series):
+    parts = series.split('\n')
+
+    if len(parts) > 1:
+        return ', '.join(parts[:-1]) + u' и ' + parts[-1]
+    else:
+        return parts[0]
 
 if __name__ == '__main__':
     if len(sys.argv) == 3:
@@ -68,10 +75,22 @@ if __name__ == '__main__':
                    'day = ? AND month = ? AND important = 1', (day, month))
     records = cursor.fetchall()
 
+    if not records:
+        print 'Nobody important was found, so we are using regular schmucks...'
+        cursor.execute('SELECT name, original_name, series, photo FROM birthdays WHERE '
+                       'day = ? AND month = ?', (day, month))
+        records = cursor.fetchall()
+
     random.shuffle(records)
 
+    cursor.execute('SELECT template FROM tweet_templates')
+    templates = cursor.fetchall()
+    if not templates:
+        templates = [DEFAULT_TEMPLATE]
+    else:
+        templates = map(lambda t: t[0], templates)
+
     max_tweets = config['twitter'].get('limit', 3)
-    templates = config.get('templates', [DEFAULT_TEMPLATE])
 
     for name, original_name, series, photo in records[:max_tweets]:
         text = random.choice(templates) % {
@@ -79,7 +98,7 @@ if __name__ == '__main__':
                 'japanese': original_name,
                 'month': MONTHS[month - 1],
                 'name': name,
-                'series': series,
+                'series': prepare_series_list(series),
             }
 
         hashtags = prepare_hashtags(original_name)
@@ -88,7 +107,9 @@ if __name__ == '__main__':
                 text += ' ' + hashtag
 
         api.PostUpdate(text, media=photo)
-
-        print 'Congratulated %s!' % name
+        if len(text) > 140:
+            print 'Text too long: ', text
+        else:
+            print 'Congratulated %s!' % name
 
     print 'That\'s it!'

@@ -4,7 +4,7 @@ import datetime
 
 from django.contrib.admin import SimpleListFilter
 from django.contrib import admin
-from .models import Birthday
+from .models import Birthday, TweetTemplate
 
 
 class CategoryFilter(SimpleListFilter):
@@ -68,4 +68,9 @@ class BirthdayAdmin(admin.ModelAdmin):
     prepared_series.allow_tags = True
 
 
+class TweetTemplateAdmin(admin.ModelAdmin):
+    list_display = ('template', )
+
+
 admin.site.register(Birthday, BirthdayAdmin)
+admin.site.register(TweetTemplate, TweetTemplateAdmin)

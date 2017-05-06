@@ -19,3 +19,16 @@ class Birthday(models.Model):
         verbose_name_plural = u'Дни рождения'
         db_table = 'birthdays'
         ordering = ['name', 'month', 'day']
+
+
+class TweetTemplate(models.Model):
+    id = models.AutoField(primary_key=True)
+    template = models.CharField(max_length=140, verbose_name=u'Шаблон')
+
+    def __unicode__(self):
+        return self.template
+
+    class Meta:
+        verbose_name = u'Шаблон поздравления'
+        verbose_name_plural = u'Шаблоны поздравлений'
+        db_table = 'tweet_templates'
