@@ -39,13 +39,13 @@ class CategoryFilter(SimpleListFilter):
         today = datetime.date.today()
 
         if self.value() == 'upcoming':
-            return queryset.filter(month__gte=today.month - 1,
+            return queryset.filter(month__gte=today.month,
                                    day__gte=today.day)
         elif self.value() == 'past':
-            return queryset.filter(month__lt=today.month - 1,
+            return queryset.filter(month__lt=today.month,
                                    day__lt=today.day)
         elif self.value() == 'today':
-            return queryset.filter(month=today.month - 1,
+            return queryset.filter(month=today.month,
                                    day=today.day)
         else:
             return queryset
@@ -60,6 +60,7 @@ class BirthdayAdmin(admin.ModelAdmin):
 
     def human_readable_month(self, obj):
         months = [
+            u'???',
             u'Январь',
             u'Февраль',
             u'Март',
