@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import yaml
+
+with open('anibirthdays.yaml', 'r') as fp:
+    CFG = yaml.safe_load(fp.read())
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,8 +29,7 @@ SECRET_KEY = 'v*vhz*)=1*)kt4no-5a2zo!iyahm@kjed0av!=1gi7j1ysfrag'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = CFG.get('gui', {}).get('allowed_hosts', [])
 
 # Application definition
 
@@ -120,3 +123,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = CFG.get('gui', {}).get('static_root', './static')
