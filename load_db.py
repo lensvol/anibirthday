@@ -38,13 +38,14 @@ if __name__ == '__main__':
                 records.append(record)
 
     conn = sqlite3.connect(sys.argv[2])
+    conn.text_factory = str
 
     with conn:
         cursor = conn.cursor()
 
-        cursor.execute("CREATE TABLE IF NOT EXISTS birthdays(name TEXT, day INTEGER, "
-                       "month INTEGER, series TEXT, original_name TEXT, photo TEXT, "
-                       "important BOOLEAN, PRIMARY KEY(name, day, month))")
+        cursor.execute(u"CREATE TABLE IF NOT EXISTS birthdays(name TEXT, day INTEGER, "
+                       u"month INTEGER, series TEXT, original_name TEXT, photo TEXT, "
+                       u"important BOOLEAN, PRIMARY KEY(name, day, month))")
 
-        cursor.executemany("INSERT OR REPLACE INTO birthdays (name, day, month, series, photo, important) "
-                           "VALUES (?, ?, ?, ?, ?, ?)", records)
+        cursor.executemany(u"INSERT OR REPLACE INTO birthdays (name, day, month, series, photo, important) "
+                           u"VALUES (?, ?, ?, ?, ?, ?)", records)
