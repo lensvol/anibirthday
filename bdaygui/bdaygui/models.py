@@ -4,7 +4,8 @@ from django.db import models
 
 
 class Birthday(models.Model):
-    charid = models.IntegerField(verbose_name=u'ID', primary_key=True)
+    id = models.AutoField(primary_key=True, verbose_name=u'ID')
+    charid = models.IntegerField(verbose_name=u'ID AniDB')
     name = models.TextField(verbose_name=u'Имя персонажа')
     day = models.IntegerField(verbose_name=u'День')
     month = models.IntegerField(verbose_name=u'Месяц')
