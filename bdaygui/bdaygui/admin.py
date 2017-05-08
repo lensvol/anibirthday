@@ -53,6 +53,7 @@ class CategoryFilter(SimpleListFilter):
 
 class BirthdayAdmin(admin.ModelAdmin):
     list_display = ('charid', 'name', 'prepared_series', 'day', 'human_readable_month')
+    list_display_links = ('charid', 'name')
     list_filter = (CategoryFilter, ImportantFilter)
 
     def prepared_series(self, obj):
