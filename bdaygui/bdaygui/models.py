@@ -24,12 +24,12 @@ class Importance(models.Model):
 
 class Birthday(models.Model):
     id = models.AutoField(primary_key=True, verbose_name=u'ID')
-    charid = models.IntegerField(verbose_name=u'ID AniDB')
+    charid = models.IntegerField(verbose_name=u'ID AniDB', null=True)
     name = models.TextField(verbose_name=u'Имя персонажа')
     day = models.IntegerField(verbose_name=u'День')
     month = models.IntegerField(verbose_name=u'Месяц')
     series = models.TextField(verbose_name=u'Произведение')
-    original_name = models.TextField(verbose_name=u'Имя на японском')
+    original_name = models.TextField(verbose_name=u'Имя на японском', null=True)
     photo = models.TextField(verbose_name=u'Фотография')
     importance = models.ForeignKey(Importance, null=False,
                                    default=get_default_importance_value,

@@ -17,14 +17,14 @@ class Migration(migrations.Migration):
             name='Birthday',
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False, verbose_name='ID')),
-                ('charid', models.IntegerField(verbose_name='ID AniDB')),
+                ('charid', models.IntegerField(verbose_name='ID AniDB', null=True)),
                 ('name', models.TextField(verbose_name='\u0418\u043c\u044f \u043f\u0435\u0440\u0441\u043e\u043d\u0430\u0436\u0430')),
                 ('day', models.IntegerField(verbose_name='\u0414\u0435\u043d\u044c')),
                 ('month', models.IntegerField(verbose_name='\u041c\u0435\u0441\u044f\u0446')),
                 ('series', models.TextField(verbose_name='\u041f\u0440\u043e\u0438\u0437\u0432\u0435\u0434\u0435\u043d\u0438\u0435')),
-                ('original_name', models.TextField(verbose_name='\u0418\u043c\u044f \u043d\u0430 \u044f\u043f\u043e\u043d\u0441\u043a\u043e\u043c')),
+                ('original_name', models.TextField(verbose_name='\u0418\u043c\u044f \u043d\u0430 \u044f\u043f\u043e\u043d\u0441\u043a\u043e\u043c', null=True)),
                 ('photo', models.TextField(verbose_name='\u0424\u043e\u0442\u043e\u0433\u0440\u0430\u0444\u0438\u044f')),
-                ('important', models.BooleanField(verbose_name='\u0412\u0430\u0436\u043d\u044b\u0439 \u043f\u0435\u0440\u0441\u043e\u043d\u0430\u0436')),
+                ('important', models.NullBooleanField(verbose_name='\u0412\u0430\u0436\u043d\u044b\u0439 \u043f\u0435\u0440\u0441\u043e\u043d\u0430\u0436')),
             ],
             options={
                 'ordering': ['name', 'month', 'day'],
