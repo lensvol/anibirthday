@@ -72,7 +72,7 @@ if __name__ == '__main__':
     print 'Trying to select important characters...'
     cursor = db.cursor()
     cursor.execute('SELECT name, original_name, series, photo FROM birthdays WHERE '
-                   'day = ? AND month = ? AND important = 1', (day, month))
+                   'day = ? AND month = ? AND importance_id = 1', (day, month))
     records = cursor.fetchall()
 
     if not records:
