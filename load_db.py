@@ -11,7 +11,7 @@ Record = namedtuple('Record', ['name', 'day_of_birth',
                                'month_of_birth', 'series', 'photo_url', 'important'])
 
 
-def new_record(csv_line):
+def convert_to_record(csv_line):
     character_id, name, full_birthday, series, photo, is_important = csv_line
 
     m = re.match('(\d+).(\d+).+', full_birthday)
@@ -33,7 +33,7 @@ if __name__ == '__main__':
         reader.next()
 
         for line in reader:
-            record = new_record(line)
+            record = convert_to_record(line)
             if record:
                 records.append(record)
 
