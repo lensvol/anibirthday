@@ -32,7 +32,17 @@ class Command(BaseCommand):
         if not character_id:
             character_id = 0
 
-        importance_code = u"Нужно поздравлять" if is_important else u"Не нужно поздравлять"
+        if is_important != '':
+            is_important = int(is_important)
+
+            if is_important == 2:
+                importance_code = 2
+            elif is_important == 1:
+                importance_code = 1
+            else:
+                importance_code = 3
+        else:
+            importance_code = 3
 
         return Birthday(
             charid=character_id,
@@ -41,7 +51,7 @@ class Command(BaseCommand):
             month=month_of_birth,
             series=series,
             photo=photo,
-            importance=Importance.objects.get(name=importance_code)
+            importance=Importance.objects.get(code=importance_code)
         )
 
 

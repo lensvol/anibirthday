@@ -27,7 +27,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'v*vhz*)=1*)kt4no-5a2zo!iyahm@kjed0av!=1gi7j1ysfrag'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False 
 
 ALLOWED_HOSTS = CFG.get('gui', {}).get('allowed_hosts', [])
 

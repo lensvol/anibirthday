@@ -19,7 +19,7 @@ class ImportantFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'important':
-            queryset = queryset.filter(important=1)
+            queryset = queryset.filter(importance__code=1)
         return queryset
 
 
