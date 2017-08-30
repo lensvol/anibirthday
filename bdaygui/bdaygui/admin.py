@@ -4,6 +4,9 @@ import datetime
 
 from django.contrib.admin import SimpleListFilter
 from django.contrib import admin
+from django.db import models
+from django.forms import TextInput, Textarea
+
 from .models import Birthday, TweetTemplate
 
 
@@ -80,6 +83,10 @@ class BirthdayAdmin(admin.ModelAdmin):
             return months[obj.month]
         except IndexError:
             return u'???'
+
+    formfield_overrides = {
+        models.TextField: {'widget': Textarea(attrs={'rows':1, 'cols':80})},
+    }
 
     human_readable_month.short_description = u'Месяц'
     human_readable_month.admin_order_field = 'month'
