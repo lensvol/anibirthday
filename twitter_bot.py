@@ -5,9 +5,11 @@ import datetime
 import random
 import sqlite3
 import sys
+import traceback
+
 import twitter
 import yaml
-
+from twitter import TwitterError
 
 DEFAULT_TEMPLATE = u'%(day)s %(month)s родился %(name)s из аниме %(series)s'
 MONTHS = [
@@ -93,6 +95,8 @@ if __name__ == '__main__':
     max_tweets = config['twitter'].get('limit', 3)
 
     for name, original_name, series, photo in records[:max_tweets]:
+        print 'Congratulating %s...' % name
+
         text = random.choice(templates) % {
                 'day': day,
                 'japanese': original_name,
@@ -106,10 +110,14 @@ if __name__ == '__main__':
             if len(text) + len(hashtag) + 1 <= 140:
                 text += ' ' + hashtag
 
-        api.PostUpdate(text, media=photo)
         if len(text) > 140:
             print 'Text too long: ', text
+            continue
         else:
-            print 'Congratulated %s!' % name
+            try:
+                api.PostUpdate(text, media=photo)
+            except TwitterError:
+                print traceback.format_exc()
 
-    print 'That\'s it!'
+
+    print '\nThat\'s it!\n'
